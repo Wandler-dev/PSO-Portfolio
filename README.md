@@ -2,7 +2,7 @@
 
 基于粒子群优化算法的投资组合风险-收益均衡决策系统。当前版本包含 FastAPI 后端和 Vue 3 + ECharts 前端看板。
 
-## 快速启动 Demo
+## 快速启动 Web 系统
 
 推荐方式：
 
@@ -74,7 +74,14 @@ npm run build
 python scripts/run_experiments.py
 ```
 
-脚本会输出 `data/experiments/experiment_summary.json`、`data/experiments/experiment_summary.csv` 和 `data/experiments/convergence_curves.json`，用于课程报告和答辩引用。
+脚本会输出 `data/experiments/experiment_summary.json`、`data/experiments/experiment_summary.csv` 和 `data/experiments/convergence_curves.json`，用于课程报告引用。
+
+## 项目文档索引
+
+- `docs/final_report.md`：最终课程项目报告正文草稿。
+- `docs/experiment_results.md`：实验结果与分析。
+- `docs/reproduction_guide.md`：复现与运行说明。
+- `docs/submission_checklist.md`：最终提交检查清单。
 
 ## Git 提交约定
 
@@ -85,7 +92,7 @@ python scripts/run_experiments.py
 - `frontend/node_modules/`
 - `frontend/dist/`
 
-## Demo 流程
+## 系统使用流程
 
 1. 启动 FastAPI 后端。
 2. 启动 Vue 前端。
