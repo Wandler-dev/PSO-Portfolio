@@ -17,6 +17,8 @@ def normalize_weights(weights):
         raise ValueError("weights must be a one-dimensional vector")
     if values.size == 0:
         raise ValueError("weights must not be empty")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("weights must contain only finite values")
 
     clipped = np.clip(values, 0.0, None)
     total = float(clipped.sum())

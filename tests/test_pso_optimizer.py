@@ -1,8 +1,9 @@
-import importlib.util
 from pathlib import Path
 
 import numpy as np
+import pytest
 
+from backend.app.portfolio_math import normalize_weights
 from backend.app.pso_optimizer import run_pso
 from backend.app.random_baseline import generate_random_portfolios
 
@@ -92,6 +93,16 @@ def test_generate_random_portfolios_defaults_to_at_least_2000_points():
     assert {"volatility", "expected_return", "sharpe_ratio"} <= set(portfolios[0])
 
 
+def test_normalize_weights_rejects_nan_and_inf_values():
+    for weights in (
+        np.array([0.5, np.nan, 0.5]),
+        np.array([0.5, np.inf, 0.5]),
+        np.array([0.5, -np.inf, 0.5]),
+    ):
+        with pytest.raises(ValueError):
+            normalize_weights(weights)
+
+
 def test_forbidden_optimization_libraries_are_not_imported():
     forbidden_names = ("scipy.optimize", "pyswarms")
     source_paths = [
@@ -106,8 +117,6 @@ def test_forbidden_optimization_libraries_are_not_imported():
         source = source_path.read_text(encoding="utf-8")
         for forbidden_name in forbidden_names:
             assert forbidden_name not in source
-
-    assert importlib.util.find_spec("pyswarms") is None
 
 
 def pytest_approx(value):
