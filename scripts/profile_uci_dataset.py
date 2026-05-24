@@ -23,8 +23,9 @@ except ImportError as exc:  # pragma: no cover - exercised by local environment
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "raw" / "uci_stock_portfolio_performance.xlsx"
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
+CANONICAL_DATA_PATH = RAW_DIR / "uci_stock_portfolio_performance.xlsx"
+LOCAL_DATA_PATH = RAW_DIR / "stock portfolio performance data set.xlsx"
 REPORT_PATH = PROJECT_ROOT / "docs" / "uci_dataset_profile.md"
 
 
@@ -146,12 +147,19 @@ def _raw_files() -> list[str]:
     return sorted(path.name for path in RAW_DIR.iterdir() if path.is_file())
 
 
+def _resolve_data_path() -> Path:
+    if CANONICAL_DATA_PATH.exists():
+        return CANONICAL_DATA_PATH
+    return LOCAL_DATA_PATH
+
+
 def _write_missing_report() -> None:
     report = [
         "# UCI 数据集画像",
         "",
         f"- 生成时间：{datetime.now().isoformat(timespec='seconds')}",
-        f"- 目标文件：`{DATA_PATH.relative_to(PROJECT_ROOT)}`",
+        f"- 规范目标文件：`{CANONICAL_DATA_PATH.relative_to(PROJECT_ROOT)}`",
+        f"- 本地确认文件：`{LOCAL_DATA_PATH.relative_to(PROJECT_ROOT)}`",
         "- 文件状态：未找到目标文件",
         f"- openpyxl：可用，版本 `{openpyxl.__version__}`",
         "",
@@ -167,12 +175,14 @@ def _write_missing_report() -> None:
 
 
 def _profile_workbook() -> list[str]:
-    excel_file = pd.ExcelFile(DATA_PATH, engine="openpyxl")
+    data_path = _resolve_data_path()
+    excel_file = pd.ExcelFile(data_path, engine="openpyxl")
     report: list[str] = [
         "# UCI 数据集画像",
         "",
         f"- 生成时间：{datetime.now().isoformat(timespec='seconds')}",
-        f"- 目标文件：`{DATA_PATH.relative_to(PROJECT_ROOT)}`",
+        f"- 规范目标文件：`{CANONICAL_DATA_PATH.relative_to(PROJECT_ROOT)}`",
+        f"- 实际读取文件：`{data_path.relative_to(PROJECT_ROOT)}`",
         "- 文件状态：已找到",
         f"- openpyxl：可用，版本 `{openpyxl.__version__}`",
         f"- sheet 数量：{len(excel_file.sheet_names)}",
@@ -244,10 +254,12 @@ def _profile_workbook() -> list[str]:
 
 def main() -> int:
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    data_path = _resolve_data_path()
 
-    if not DATA_PATH.exists():
+    if not data_path.exists():
         _write_missing_report()
-        print(f"target_file={DATA_PATH.relative_to(PROJECT_ROOT)}")
+        print(f"canonical_target_file={CANONICAL_DATA_PATH.relative_to(PROJECT_ROOT)}")
+        print(f"local_confirmed_file={LOCAL_DATA_PATH.relative_to(PROJECT_ROOT)}")
         print("found=false")
         print(f"openpyxl_version={openpyxl.__version__}")
         print("raw_files=" + ", ".join(_raw_files()))
@@ -255,7 +267,8 @@ def main() -> int:
         return 0
 
     summaries = _profile_workbook()
-    print(f"target_file={DATA_PATH.relative_to(PROJECT_ROOT)}")
+    print(f"canonical_target_file={CANONICAL_DATA_PATH.relative_to(PROJECT_ROOT)}")
+    print(f"actual_file={data_path.relative_to(PROJECT_ROOT)}")
     print("found=true")
     print(f"openpyxl_version={openpyxl.__version__}")
     print("sheets_profiled:")
