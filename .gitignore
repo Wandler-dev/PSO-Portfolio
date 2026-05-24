@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Conda / env
+.venv/
+env/
+.env
+
+# Data cache
+data/raw/
+data/cache/
+data/*.csv
+data/*.xlsx
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
