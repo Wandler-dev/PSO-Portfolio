@@ -106,6 +106,7 @@ def test_normalize_weights_rejects_nan_and_inf_values():
 def test_forbidden_optimization_libraries_are_not_imported():
     forbidden_names = ("scipy.optimize", "pyswarms")
     source_paths = [
+        Path("backend/app/data_loader.py"),
         Path("backend/app/portfolio_math.py"),
         Path("backend/app/pso_optimizer.py"),
         Path("backend/app/random_baseline.py"),
