@@ -34,9 +34,17 @@ export function fetchPresets() {
   return requestJson('/api/presets')
 }
 
-export function runOptimize(payload) {
+export function optimizePortfolio(payload) {
   return requestJson('/api/optimize', {
     method: 'POST',
     body: JSON.stringify(payload)
   })
+}
+
+export function optimizePreset(presetName) {
+  return optimizePortfolio({ preset_name: presetName })
+}
+
+export function runOptimize(payload) {
+  return optimizePortfolio(payload)
 }

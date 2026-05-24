@@ -158,6 +158,28 @@ h2 {
   gap: 16px;
 }
 
+.comparison-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.comparison-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid rgba(121, 141, 170, 0.2);
+  background: rgba(16, 24, 38, 0.88);
+}
+
+.comparison-heading p {
+  margin: 8px 0 0;
+  color: #9fb1ce;
+  line-height: 1.6;
+}
+
 .chart-panel {
   position: relative;
   min-height: 360px;
@@ -181,6 +203,38 @@ h2 {
 
 .chart-canvas.large {
   height: 380px;
+}
+
+.chart-canvas.comparison-large {
+  height: 420px;
+}
+
+.comparison-panel {
+  min-height: 320px;
+}
+
+.metric-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-chart-card {
+  min-height: 258px;
+  padding: 12px;
+  border: 1px solid rgba(121, 141, 170, 0.14);
+  background: rgba(10, 16, 27, 0.42);
+}
+
+.metric-chart-title {
+  color: #cbd7e8;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.metric-chart-canvas {
+  width: 100%;
+  height: 210px;
 }
 
 .empty-state {
@@ -227,5 +281,14 @@ h2 {
 
   .wide-panel {
     grid-column: auto;
+  }
+
+  .comparison-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metric-chart-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -52,6 +52,28 @@
           />
           <SelectedAssetsTable :selected-assets="optimizationResult?.selected_assets || []" />
         </section>
+
+        <section class="comparison-section">
+          <div class="comparison-heading">
+            <div>
+              <span class="section-label">Preset Comparison</span>
+              <h2>预设对比与组合变化</h2>
+              <p>对比 conservative、balanced、aggressive 三组 PSO 参数下的风险、收益、Sharpe Ratio 与组合权重变化。</p>
+            </div>
+            <el-button type="primary" :loading="comparisonLoading" @click="loadPresetComparison">
+              加载预设对比
+            </el-button>
+          </div>
+          <el-alert
+            v-if="comparisonError"
+            type="error"
+            :closable="false"
+            show-icon
+            :title="comparisonError"
+          />
+          <PresetComparisonChart :results="presetComparisonResults" :loading="comparisonLoading" />
+          <PresetWeightComparisonChart :results="presetComparisonResults" :loading="comparisonLoading" />
+        </section>
       </section>
     </main>
   </div>
@@ -59,21 +81,26 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { fetchDataSummary, fetchHealth, fetchPresets, runOptimize } from './api/portfolio'
+import { fetchDataSummary, fetchHealth, fetchPresets, optimizePreset, runOptimize } from './api/portfolio'
 import ParameterPanel from './components/ParameterPanel.vue'
 import KpiCards from './components/KpiCards.vue'
 import ConvergenceChart from './components/ConvergenceChart.vue'
 import AllocationChart from './components/AllocationChart.vue'
 import RiskReturnChart from './components/RiskReturnChart.vue'
 import SelectedAssetsTable from './components/SelectedAssetsTable.vue'
+import PresetComparisonChart from './components/PresetComparisonChart.vue'
+import PresetWeightComparisonChart from './components/PresetWeightComparisonChart.vue'
 
 const backendStatus = ref('unknown')
 const dataSummary = ref(null)
 const presets = ref([])
 const selectedPresetName = ref('balanced')
 const optimizationResult = ref(null)
+const presetComparisonResults = ref({})
 const loading = ref(false)
+const comparisonLoading = ref(false)
 const errorMessage = ref('')
+const comparisonError = ref('')
 
 const params = reactive({
   particles: 100,
@@ -147,6 +174,23 @@ async function handleOptimize() {
     errorMessage.value = error.message || '优化请求失败'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadPresetComparison() {
+  comparisonLoading.value = true
+  comparisonError.value = ''
+  try {
+    const presetNames = ['conservative', 'balanced', 'aggressive']
+    const entries = await Promise.all(
+      presetNames.map(async (presetName) => [presetName, await optimizePreset(presetName)])
+    )
+    presetComparisonResults.value = Object.fromEntries(entries)
+    backendStatus.value = 'connected'
+  } catch (error) {
+    comparisonError.value = error.message || '预设对比请求失败'
+  } finally {
+    comparisonLoading.value = false
   }
 }
 

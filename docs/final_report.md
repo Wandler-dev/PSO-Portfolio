@@ -225,6 +225,7 @@ Web 界面支持 `conservative`、`balanced`、`aggressive` 三组预设参数�
 - Top 10 权重图：展示最优组合中权重最高的候选策略。
 - 风险-收益散点图：展示 Monte Carlo 随机组合与 PSO 最优解。
 - 入选策略表：展示权重不低于 1% 的候选策略。
+- Preset 对比图与组合权重对比图：展示不同 PSO 参数设置下 `expected_return`、`volatility`、`sharpe_ratio` 和最优组合结构的变化。
 
 `cache_hit` 只表示系统命中了本地缓存。缓存结果来自此前相同参数下的真实计算，不改变算法定义，也不代表跳过项目中的 PSO 设计。
 
