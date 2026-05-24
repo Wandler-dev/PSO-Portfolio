@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 
 BASE_URL = "http://127.0.0.1:8000"
 STARTUP_TIMEOUT_SECONDS = 20
-REQUEST_TIMEOUT_SECONDS = 120
+REQUEST_TIMEOUT_SECONDS = 180
 
 
 def request_json(path, method="GET", payload=None):
@@ -78,6 +78,7 @@ def main():
     try:
         health = wait_for_server(process)
         summary = request_json("/api/data/summary")
+        presets = request_json("/api/presets")
         optimize_payload = {
             "particles": 20,
             "iterations": 50,
@@ -93,16 +94,38 @@ def main():
             method="POST",
             payload=optimize_payload,
         )
+        preset_payload = {"preset_name": "balanced"}
+        first_preset_optimize = request_json(
+            "/api/optimize",
+            method="POST",
+            payload=preset_payload,
+        )
+        second_preset_optimize = request_json(
+            "/api/optimize",
+            method="POST",
+            payload=preset_payload,
+        )
+        if len(presets) != 3:
+            raise RuntimeError(f"expected 3 presets, got {len(presets)}")
+        if len(optimize["risk_return_points"]) < optimize_payload["monte_carlo_samples"]:
+            raise RuntimeError("risk_return_points count is smaller than requested")
+        if second_preset_optimize["cache_hit"] is not True:
+            raise RuntimeError("second balanced preset optimization did not hit cache")
 
         output = {
             "health.status": health["status"],
             "summary.data_source": summary["data_source"],
             "summary.asset_count": summary["asset_count"],
+            "presets.count": len(presets),
             "optimize.expected_return": optimize["expected_return"],
             "optimize.volatility": optimize["volatility"],
             "optimize.sharpe_ratio": optimize["sharpe_ratio"],
             "len(optimize.best_weights)": len(optimize["best_weights"]),
             "len(optimize.risk_return_points)": len(optimize["risk_return_points"]),
+            "first_optimize.cache_hit": first_preset_optimize["cache_hit"],
+            "second_optimize.cache_hit": second_preset_optimize["cache_hit"],
+            "first_optimize.compute_time_seconds": first_preset_optimize["compute_time_seconds"],
+            "second_optimize.compute_time_seconds": second_preset_optimize["compute_time_seconds"],
         }
         print(json.dumps(output, indent=2, ensure_ascii=False))
         return 0

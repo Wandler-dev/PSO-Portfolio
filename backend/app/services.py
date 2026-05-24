@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import copy
+import time
+
+import backend.app.cache as cache
 from backend.app.data_loader import load_portfolio_dataset
+from backend.app.presets import get_preset, list_presets
 from backend.app.pso_optimizer import run_pso
 from backend.app.random_baseline import generate_random_portfolios
 from backend.app.schemas import OptimizeRequest
@@ -21,6 +26,10 @@ def build_data_summary():
         "asset_names": dataset["asset_names"],
         "source_notes": dataset["source_notes"],
     }
+
+
+def build_presets_response():
+    return list_presets()
 
 
 def build_selected_assets(asset_names, best_weights, threshold=SELECTED_THRESHOLD):
@@ -50,24 +59,34 @@ def build_asset_weight_table(asset_names, best_weights, threshold=SELECTED_THRES
 
 
 def run_optimization_service(request: OptimizeRequest):
-    dataset = load_portfolio_dataset(random_seed=request.random_seed)
+    effective_request = _request_with_preset(request)
+    dataset = load_portfolio_dataset(random_seed=effective_request.random_seed)
+    cache_key = cache.build_cache_key(dataset, effective_request)
+    cached_response = cache.get_cached_response(cache_key)
+    if cached_response is not None:
+        response = copy.deepcopy(cached_response)
+        response["cache_hit"] = True
+        response["compute_time_seconds"] = 0.0
+        return response
+
+    start_time = time.perf_counter()
     pso_result = run_pso(
         dataset["expected_returns"],
         dataset["covariance_matrix"],
-        particles=request.particles,
-        iterations=request.iterations,
-        inertia_weight=request.inertia_weight,
-        c1=request.c1,
-        c2=request.c2,
-        risk_free_rate=request.risk_free_rate,
-        random_seed=request.random_seed,
+        particles=effective_request.particles,
+        iterations=effective_request.iterations,
+        inertia_weight=effective_request.inertia_weight,
+        c1=effective_request.c1,
+        c2=effective_request.c2,
+        risk_free_rate=effective_request.risk_free_rate,
+        random_seed=effective_request.random_seed,
     )
     baseline_points = generate_random_portfolios(
         dataset["expected_returns"],
         dataset["covariance_matrix"],
-        samples=request.monte_carlo_samples,
-        risk_free_rate=request.risk_free_rate,
-        random_seed=request.random_seed,
+        samples=effective_request.monte_carlo_samples,
+        risk_free_rate=effective_request.risk_free_rate,
+        random_seed=effective_request.random_seed,
     )
     risk_return_points = [
         {
@@ -85,7 +104,7 @@ def run_optimization_service(request: OptimizeRequest):
         "type": "pso_best",
     }
 
-    return {
+    response = {
         "data_source": dataset["data_source"],
         "asset_count": len(dataset["asset_names"]),
         "expected_return": pso_result["expected_return"],
@@ -104,4 +123,16 @@ def run_optimization_service(request: OptimizeRequest):
             pso_result["best_weights"],
         ),
         "source_notes": dataset["source_notes"],
+        "cache_hit": False,
+        "preset_name": effective_request.preset_name,
+        "compute_time_seconds": time.perf_counter() - start_time,
     }
+    cache.set_cached_response(cache_key, response)
+    return response
+
+
+def _request_with_preset(request: OptimizeRequest):
+    preset = get_preset(request.preset_name)
+    if preset is None:
+        return request
+    return OptimizeRequest(**preset)

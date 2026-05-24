@@ -12,6 +12,7 @@ env/
 
 # Data cache
 data/cache/
+data/cache/*.json
 data/*.csv
 data/*.xlsx
 data/raw/*.xlsx

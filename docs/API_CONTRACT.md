@@ -14,6 +14,9 @@
 - `best_point`
 - `asset_weight_table`
 - `data_source`
+- `cache_hit`
+- `preset_name`
+- `compute_time_seconds`
 
 禁止对外字段：
 
@@ -84,9 +87,12 @@
   "c2": 1.5,
   "risk_free_rate": 0.0,
   "random_seed": 42,
-  "monte_carlo_samples": 3000
+  "monte_carlo_samples": 3000,
+  "preset_name": null
 }
 ```
+
+`preset_name` 为可选字段。若传入 `conservative`、`balanced` 或 `aggressive`，后端使用对应 Demo 预设参数覆盖 PSO 参数；若不传或为 `null`，使用请求中的参数。预设只是参数快捷方式，不改变 PSO 算法、目标函数或约束条件。
 
 响应示例：
 
@@ -130,7 +136,11 @@
       "weight": 0.1,
       "selected": true
     }
-  ]
+  ],
+  "source_notes": "...",
+  "cache_hit": false,
+  "preset_name": null,
+  "compute_time_seconds": 1.234
 }
 ```
 
@@ -141,6 +151,39 @@
 - `convergence_curve` 长度必须等于请求中的 `iterations`。
 - `risk_return_points` 默认不少于 2000 个点。
 - `best_point` 必须用于前端高亮 PSO 最优解。
+- `cache_hit` 表示本次响应是否来自内存或文件缓存。
+- `preset_name` 为实际使用的预设名称；自定义参数请求为 `null`。
+- `compute_time_seconds` 表示真实计算耗时；缓存命中时可为 0 或保留原始耗时。
+
+## 4.1 GET /api/presets
+
+用途：返回课程 Demo 推荐的少量参数预设，用于答辩演示和缓存预计算。
+
+响应示例：
+
+```json
+[
+  {
+    "preset_name": "conservative",
+    "particles": 50,
+    "iterations": 150,
+    "inertia_weight": 0.5,
+    "c1": 1.2,
+    "c2": 1.8,
+    "risk_free_rate": 0.0,
+    "random_seed": 42,
+    "monte_carlo_samples": 3000
+  }
+]
+```
+
+当前 V1 Demo 固定提供：
+
+- `conservative`
+- `balanced`
+- `aggressive`
+
+这些预设仅用于 Demo 加速和演示稳定性，不参与 PSO 算法定义，不引入额外投资约束。
 
 ## 5. 参数校验规则
 

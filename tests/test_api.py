@@ -4,8 +4,10 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
+import backend.app.cache as cache
 import backend.app.services as services
 from backend.app.main import app
+from backend.app.presets import DEMO_PRESETS
 from backend.app.schemas import OptimizeRequest
 
 
@@ -22,6 +24,9 @@ REQUIRED_OPTIMIZE_FIELDS = {
     "best_point",
     "asset_weight_table",
     "source_notes",
+    "cache_hit",
+    "preset_name",
+    "compute_time_seconds",
 }
 
 
@@ -44,8 +49,10 @@ def small_dataset():
 
 
 @pytest.fixture(autouse=True)
-def patch_dataset(monkeypatch):
+def patch_dataset_and_cache(monkeypatch, tmp_path):
     monkeypatch.setattr(services, "load_portfolio_dataset", lambda *args, **kwargs: small_dataset())
+    monkeypatch.setattr(cache, "DEFAULT_CACHE_PATH", tmp_path / "optimization_cache.json")
+    cache.clear_memory_cache()
 
 
 @pytest.fixture
@@ -78,6 +85,7 @@ def test_valid_optimize_request_can_be_created():
     assert request.risk_free_rate == 0.0
     assert request.random_seed == 42
     assert request.monte_carlo_samples == 3000
+    assert request.preset_name is None
 
 
 @pytest.mark.parametrize(
@@ -86,6 +94,7 @@ def test_valid_optimize_request_can_be_created():
         {"particles": 19},
         {"iterations": 49},
         {"monte_carlo_samples": 1999},
+        {"preset_name": "invalid"},
     ],
 )
 def test_optimize_request_rejects_invalid_ranges(field_overrides):
@@ -105,6 +114,18 @@ def test_build_data_summary_returns_data_source_and_asset_count():
 
 def test_run_optimization_service_returns_required_fields(optimize_result):
     assert REQUIRED_OPTIMIZE_FIELDS <= set(optimize_result)
+    assert optimize_result["cache_hit"] is False
+    assert optimize_result["preset_name"] is None
+    assert optimize_result["compute_time_seconds"] >= 0
+
+
+def test_same_request_second_call_hits_cache(optimize_request):
+    first = services.run_optimization_service(optimize_request)
+    second = services.run_optimization_service(optimize_request)
+
+    assert first["cache_hit"] is False
+    assert second["cache_hit"] is True
+    assert REQUIRED_OPTIMIZE_FIELDS <= set(second)
 
 
 def test_run_optimization_service_best_weights_match_asset_count(optimize_result):
@@ -152,3 +173,17 @@ def test_main_app_registers_required_routes():
     assert "/api/health" in paths
     assert "/api/data/summary" in paths
     assert "/api/optimize" in paths
+    assert "/api/presets" in paths
+
+
+def test_balanced_preset_runs_and_marks_preset_name():
+    request = OptimizeRequest(preset_name="balanced")
+
+    result = services.run_optimization_service(request)
+
+    assert result["preset_name"] == "balanced"
+    assert len(result["convergence_curve"]) == DEMO_PRESETS["balanced"]["iterations"]
+
+
+def test_all_demo_presets_exist():
+    assert set(DEMO_PRESETS) == {"conservative", "balanced", "aggressive"}
