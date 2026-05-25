@@ -19,10 +19,12 @@ const chartRef = ref(null)
 let chart = null
 
 function tooltip(point) {
+  const typeLabel = point.seriesName === 'PSO 最优解' ? 'PSO 最优解' : '随机组合'
   return [
-    `volatility: ${(point.value[0] * 100).toFixed(2)}%`,
-    `expected_return: ${(point.value[1] * 100).toFixed(2)}%`,
-    `sharpe_ratio: ${point.value[2].toFixed(4)}`
+    `类型：${typeLabel}`,
+    `波动率（Volatility）：${(point.value[0] * 100).toFixed(2)}%`,
+    `期望收益率（Expected Return）：${(point.value[1] * 100).toFixed(2)}%`,
+    `夏普比率（Sharpe Ratio）：${point.value[2].toFixed(4)}`
   ].join('<br/>')
 }
 
@@ -38,24 +40,24 @@ function renderChart() {
     tooltip: { formatter: tooltip },
     xAxis: {
       type: 'value',
-      name: 'volatility',
+      name: '波动率（Volatility）',
       axisLabel: { formatter: (value) => `${(value * 100).toFixed(1)}%` }
     },
     yAxis: {
       type: 'value',
-      name: 'expected_return',
+      name: '期望收益率（Expected Return）',
       axisLabel: { formatter: (value) => `${(value * 100).toFixed(1)}%` }
     },
     series: [
       {
-        name: 'random',
+        name: '随机组合',
         type: 'scatter',
         symbolSize: 5,
         data: randomData,
         itemStyle: { color: 'rgba(99, 125, 168, 0.45)' }
       },
       {
-        name: 'pso_best',
+        name: 'PSO 最优解',
         type: 'scatter',
         symbolSize: 18,
         data: bestData,

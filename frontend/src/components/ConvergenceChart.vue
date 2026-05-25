@@ -22,9 +22,15 @@ function renderChart() {
   if (!chart) chart = echarts.init(chartRef.value)
   chart.setOption({
     grid: { left: 48, right: 20, top: 36, bottom: 36 },
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: props.curve.map((point) => point.iteration), name: 'iteration' },
-    yAxis: { type: 'value', name: 'sharpe_ratio', scale: true },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params) => {
+        const point = params[0]
+        return `第 ${point.axisValue} 次迭代<br/>夏普比率：${Number(point.value).toFixed(4)}`
+      }
+    },
+    xAxis: { type: 'category', data: props.curve.map((point) => point.iteration), name: '迭代次数' },
+    yAxis: { type: 'value', name: '夏普比率（Sharpe Ratio）', scale: true },
     series: [
       {
         type: 'line',

@@ -29,15 +29,17 @@ function renderChart() {
   chart.setOption({
     grid: { left: 56, right: 20, top: 30, bottom: 76 },
     tooltip: {
-      formatter: (params) => `${params.name}<br/>weight: ${(params.value * 100).toFixed(2)}%`
+      formatter: (params) => `候选策略：${params.name}<br/>权重：${(params.value * 100).toFixed(2)}%`
     },
     xAxis: {
       type: 'category',
+      name: '候选策略',
       data: topWeights.value.map((row) => row.asset_id),
       axisLabel: { rotate: 40 }
     },
     yAxis: {
       type: 'value',
+      name: '权重',
       axisLabel: { formatter: (value) => `${(value * 100).toFixed(0)}%` }
     },
     series: [

@@ -186,6 +186,11 @@ h2 {
   padding: 16px;
 }
 
+.selected-assets-card {
+  min-height: auto;
+  padding: 14px;
+}
+
 .wide-panel {
   grid-column: span 2;
 }
@@ -246,6 +251,66 @@ h2 {
   color: #7f91ac;
   pointer-events: none;
   border: 1px dashed rgba(140, 160, 190, 0.25);
+}
+
+.selected-assets-card .el-empty {
+  padding: 18px 0;
+}
+
+.selected-assets-card .el-empty__description p {
+  color: #9fb1ce;
+}
+
+.table-wrapper {
+  max-height: 252px;
+  overflow-y: auto;
+  border: 1px solid rgba(121, 141, 170, 0.18);
+  background: rgba(8, 13, 22, 0.42);
+}
+
+.selected-assets-table.el-table {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: rgba(12, 19, 31, 0.82);
+  --el-table-header-bg-color: rgba(25, 36, 54, 0.95);
+  --el-table-row-hover-bg-color: rgba(43, 67, 102, 0.74);
+  --el-table-border-color: rgba(121, 141, 170, 0.18);
+  --el-table-text-color: #e8eef8;
+  --el-table-header-text-color: #f4f8ff;
+  color: #e8eef8;
+  background: transparent;
+}
+
+.selected-assets-table.el-table::before {
+  background: rgba(121, 141, 170, 0.18);
+}
+
+.selected-assets-table .el-table__inner-wrapper,
+.selected-assets-table .el-table__body-wrapper,
+.selected-assets-table .el-scrollbar,
+.selected-assets-table .el-scrollbar__view {
+  background: transparent;
+}
+
+.selected-assets-table th.el-table__cell {
+  background: rgba(25, 36, 54, 0.95);
+  color: #f4f8ff;
+  font-weight: 700;
+}
+
+.selected-assets-table tr,
+.selected-assets-table td.el-table__cell {
+  background: rgba(12, 19, 31, 0.82);
+  color: #e8eef8;
+  border-bottom-color: rgba(121, 141, 170, 0.14);
+}
+
+.selected-assets-table .el-table__row:hover > td.el-table__cell {
+  background: rgba(43, 67, 102, 0.74);
+  color: #ffffff;
+}
+
+.selected-assets-table .el-table__cell {
+  padding: 8px 0;
 }
 
 .el-form-item__label,

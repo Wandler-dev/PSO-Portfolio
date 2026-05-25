@@ -20,13 +20,13 @@ const fixed = (value, digits = 4) => (Number.isFinite(value) ? value.toFixed(dig
 const items = computed(() => {
   const result = props.result
   return [
-    { label: 'expected_return', value: percent(result?.expected_return) },
-    { label: 'volatility', value: percent(result?.volatility) },
-    { label: 'sharpe_ratio', value: fixed(result?.sharpe_ratio, 4) },
-    { label: 'selected_assets_count', value: result?.selected_assets?.length ?? '-' },
-    { label: 'cache_hit', value: result ? (result.cache_hit ? '缓存命中' : '实时计算') : '-' },
+    { label: '期望收益率（Expected Return）', value: percent(result?.expected_return) },
+    { label: '波动率（Volatility）', value: percent(result?.volatility) },
+    { label: '夏普比率（Sharpe Ratio）', value: fixed(result?.sharpe_ratio, 4) },
+    { label: '入选策略数', value: result?.selected_assets?.length ?? '-' },
+    { label: '缓存状态', value: result ? (result.cache_hit ? '缓存命中' : '实时计算') : '-' },
     {
-      label: 'compute_time_seconds',
+      label: '计算耗时',
       value: Number.isFinite(result?.compute_time_seconds) ? `${result.compute_time_seconds.toFixed(3)}s` : '-'
     }
   ]

@@ -2,6 +2,24 @@
 
 基于粒子群优化算法的投资组合风险-收益均衡决策系统。当前版本包含 FastAPI 后端和 Vue 3 + ECharts 前端看板。
 
+## 环境准备
+
+项目提供 `environment.yml`，推荐使用 conda/mamba 创建独立环境：
+
+```bash
+conda env create -f environment.yml
+conda activate portfolio-pso
+```
+
+如果环境已经存在，可更新依赖：
+
+```bash
+conda env update -f environment.yml --prune
+conda activate portfolio-pso
+```
+
+当前项目不要求安装全局系统包，也不需要修改 `base` 环境。
+
 ## 快速启动 Web 系统
 
 推荐方式：

@@ -17,6 +17,11 @@ const props = defineProps({
 })
 
 const presetOrder = ['conservative', 'balanced', 'aggressive']
+const presetLabels = {
+  conservative: '保守型',
+  balanced: '均衡型',
+  aggressive: '激进型'
+}
 const colors = {
   conservative: '#28d6a3',
   balanced: '#4f8cff',
@@ -57,7 +62,7 @@ function renderChart() {
   const series = presetOrder.map((preset) => {
     const weightMap = weightMapFor(preset)
     return {
-      name: preset,
+      name: presetLabels[preset],
       type: 'bar',
       data: ids.map((assetId) => weightMap.get(assetId) || 0),
       itemStyle: { color: colors[preset], borderRadius: [3, 3, 0, 0] }
@@ -75,7 +80,7 @@ function renderChart() {
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
         const assetId = params[0]?.name || ''
-        const lines = [`asset_id: ${assetId}`]
+        const lines = [`候选策略：${assetId}`]
         params.forEach((point) => {
           lines.push(`${point.seriesName}: ${(point.value * 100).toFixed(2)}%`)
         })
@@ -84,6 +89,7 @@ function renderChart() {
     },
     xAxis: {
       type: 'category',
+      name: '候选策略',
       data: ids,
       axisLabel: {
         rotate: 38,
@@ -93,6 +99,7 @@ function renderChart() {
     },
     yAxis: {
       type: 'value',
+      name: '权重',
       axisLabel: {
         color: '#9fb1ce',
         formatter: (value) => `${(value * 100).toFixed(0)}%`

@@ -22,10 +22,15 @@ const props = defineProps({
 })
 
 const presetOrder = ['conservative', 'balanced', 'aggressive']
+const presetLabels = {
+  conservative: '保守型',
+  balanced: '均衡型',
+  aggressive: '激进型'
+}
 const metrics = [
-  { key: 'expected_return', label: 'Expected Return', color: '#28d6a3', percent: true },
-  { key: 'volatility', label: 'Volatility', color: '#ffbf3f', percent: true },
-  { key: 'sharpe_ratio', label: 'Sharpe Ratio', color: '#4f8cff', percent: false }
+  { key: 'expected_return', label: '期望收益率（Expected Return）', color: '#28d6a3', percent: true },
+  { key: 'volatility', label: '波动率（Volatility）', color: '#ffbf3f', percent: true },
+  { key: 'sharpe_ratio', label: '夏普比率（Sharpe Ratio）', color: '#4f8cff', percent: false }
 ]
 
 const chartRefs = {}
@@ -71,7 +76,7 @@ function renderMetric(key) {
     },
     xAxis: {
       type: 'category',
-      data: presetOrder,
+      data: presetOrder.map((preset) => presetLabels[preset]),
       axisLabel: { color: '#9fb1ce' }
     },
     yAxis: {

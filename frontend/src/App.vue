@@ -2,7 +2,7 @@
   <div class="app-shell">
     <header class="dashboard-header">
       <div>
-        <p class="eyebrow">Particle Swarm Optimization Dashboard</p>
+        <p class="eyebrow">粒子群优化可视化系统</p>
         <h1>PSO 智能投资组合优化系统</h1>
       </div>
       <div class="status-strip">
@@ -56,9 +56,9 @@
         <section class="comparison-section">
           <div class="comparison-heading">
             <div>
-              <span class="section-label">Preset Comparison</span>
+              <span class="section-label">预设参数对比</span>
               <h2>预设对比与组合变化</h2>
-              <p>对比 conservative、balanced、aggressive 三组 PSO 参数下的风险、收益、Sharpe Ratio 与组合权重变化。</p>
+              <p>对比保守型、均衡型、激进型三组 PSO 参数下的风险、收益、夏普比率（Sharpe Ratio）与组合权重变化。</p>
             </div>
             <el-button type="primary" :loading="comparisonLoading" @click="loadPresetComparison">
               加载预设对比
