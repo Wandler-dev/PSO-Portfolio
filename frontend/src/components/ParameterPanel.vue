@@ -9,6 +9,7 @@
       <el-button
         v-for="preset in presets"
         :key="preset.preset_name"
+        class="preset-button"
         :type="selectedPresetName === preset.preset_name ? 'primary' : 'default'"
         @click="selectPreset(preset)"
       >
@@ -33,7 +34,8 @@
         <el-slider v-model="localParams.c2" :min="0.5" :max="3" :step="0.1" @change="markCustom" />
       </el-form-item>
       <el-form-item label="无风险利率">
-        <el-input-number v-model="localParams.risk_free_rate" :step="0.001" :precision="3" @change="markCustom" />
+        <el-input-number v-model="localParams.risk_free_rate" :step="0.0001" :precision="4" @change="markCustom" />
+        <p class="field-helper">三个预设均使用 0.0000 作为实验固定值；手动模式仍可调整。</p>
       </el-form-item>
       <el-form-item label="随机种子">
         <el-input-number v-model="localParams.random_seed" :min="0" :step="1" @change="markCustom" />

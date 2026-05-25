@@ -35,6 +35,15 @@ const metrics = [
 
 const chartRefs = {}
 const charts = {}
+const chartTextColor = '#e5e7eb'
+const chartLabelColor = '#dbeafe'
+const axisLineColor = 'rgba(226, 232, 240, 0.65)'
+const splitLineColor = 'rgba(148, 163, 184, 0.25)'
+const tooltipStyle = {
+  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+  borderColor: 'rgba(148, 163, 184, 0.35)',
+  textStyle: { color: '#f8fafc' }
+}
 
 const hasResults = computed(() => presetOrder.every((preset) => props.results?.[preset]))
 
@@ -69,6 +78,7 @@ function renderMetric(key) {
     grid: { left: 44, right: 18, top: 20, bottom: 42 },
     tooltip: {
       trigger: 'axis',
+      ...tooltipStyle,
       formatter: (params) => {
         const point = params[0]
         return `${point.name}<br/>${metric.label}: ${tooltipValue(metric, point.value)}`
@@ -77,15 +87,19 @@ function renderMetric(key) {
     xAxis: {
       type: 'category',
       data: presetOrder.map((preset) => presetLabels[preset]),
-      axisLabel: { color: '#9fb1ce' }
+      axisLabel: { color: chartLabelColor },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisTick: { lineStyle: { color: axisLineColor } }
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        color: '#9fb1ce',
+        color: chartLabelColor,
         formatter: (value) => axisValue(metric, value)
       },
-      splitLine: { lineStyle: { color: 'rgba(140, 160, 190, 0.14)' } }
+      nameTextStyle: { color: chartTextColor },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series: [
       {

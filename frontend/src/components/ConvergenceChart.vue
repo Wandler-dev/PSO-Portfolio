@@ -16,6 +16,15 @@ const props = defineProps({
 
 const chartRef = ref(null)
 let chart = null
+const chartTextColor = '#e5e7eb'
+const chartLabelColor = '#dbeafe'
+const axisLineColor = 'rgba(226, 232, 240, 0.65)'
+const splitLineColor = 'rgba(148, 163, 184, 0.25)'
+const tooltipStyle = {
+  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+  borderColor: 'rgba(148, 163, 184, 0.35)',
+  textStyle: { color: '#f8fafc' }
+}
 
 function renderChart() {
   if (!chartRef.value) return
@@ -24,13 +33,30 @@ function renderChart() {
     grid: { left: 48, right: 20, top: 36, bottom: 36 },
     tooltip: {
       trigger: 'axis',
+      ...tooltipStyle,
       formatter: (params) => {
         const point = params[0]
         return `第 ${point.axisValue} 次迭代<br/>夏普比率：${Number(point.value).toFixed(4)}`
       }
     },
-    xAxis: { type: 'category', data: props.curve.map((point) => point.iteration), name: '迭代次数' },
-    yAxis: { type: 'value', name: '夏普比率（Sharpe Ratio）', scale: true },
+    xAxis: {
+      type: 'category',
+      data: props.curve.map((point) => point.iteration),
+      name: '迭代次数',
+      nameTextStyle: { color: chartTextColor },
+      axisLabel: { color: chartLabelColor },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisTick: { lineStyle: { color: axisLineColor } }
+    },
+    yAxis: {
+      type: 'value',
+      name: '夏普比率（Sharpe Ratio）',
+      scale: true,
+      nameTextStyle: { color: chartTextColor },
+      axisLabel: { color: chartLabelColor },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      splitLine: { lineStyle: { color: splitLineColor } }
+    },
     series: [
       {
         type: 'line',

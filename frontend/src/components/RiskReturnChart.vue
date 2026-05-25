@@ -17,6 +17,15 @@ const props = defineProps({
 
 const chartRef = ref(null)
 let chart = null
+const chartTextColor = '#e5e7eb'
+const chartLabelColor = '#dbeafe'
+const axisLineColor = 'rgba(226, 232, 240, 0.65)'
+const splitLineColor = 'rgba(148, 163, 184, 0.25)'
+const tooltipStyle = {
+  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+  borderColor: 'rgba(148, 163, 184, 0.35)',
+  textStyle: { color: '#f8fafc' }
+}
 
 function tooltip(point) {
   const typeLabel = point.seriesName === 'PSO 最优解' ? 'PSO 最优解' : '随机组合'
@@ -37,16 +46,22 @@ function renderChart() {
     : []
   chart.setOption({
     grid: { left: 58, right: 28, top: 30, bottom: 44 },
-    tooltip: { formatter: tooltip },
+    tooltip: { ...tooltipStyle, formatter: tooltip },
     xAxis: {
       type: 'value',
       name: '波动率（Volatility）',
-      axisLabel: { formatter: (value) => `${(value * 100).toFixed(1)}%` }
+      nameTextStyle: { color: chartTextColor },
+      axisLabel: { color: chartLabelColor, formatter: (value) => `${(value * 100).toFixed(1)}%` },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     yAxis: {
       type: 'value',
       name: '期望收益率（Expected Return）',
-      axisLabel: { formatter: (value) => `${(value * 100).toFixed(1)}%` }
+      nameTextStyle: { color: chartTextColor },
+      axisLabel: { color: chartLabelColor, formatter: (value) => `${(value * 100).toFixed(1)}%` },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series: [
       {

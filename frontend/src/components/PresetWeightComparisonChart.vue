@@ -30,6 +30,15 @@ const colors = {
 
 const chartRef = ref(null)
 let chart = null
+const chartTextColor = '#e5e7eb'
+const chartLabelColor = '#dbeafe'
+const axisLineColor = 'rgba(226, 232, 240, 0.65)'
+const splitLineColor = 'rgba(148, 163, 184, 0.25)'
+const tooltipStyle = {
+  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+  borderColor: 'rgba(148, 163, 184, 0.35)',
+  textStyle: { color: '#f8fafc' }
+}
 
 function topRowsFor(preset) {
   return [...(props.results?.[preset]?.asset_weight_table || [])]
@@ -72,11 +81,12 @@ function renderChart() {
   chart.setOption({
     legend: {
       top: 2,
-      textStyle: { color: '#cbd7e8' }
+      textStyle: { color: chartTextColor }
     },
     grid: { left: 58, right: 24, top: 48, bottom: 92 },
     tooltip: {
       trigger: 'axis',
+      ...tooltipStyle,
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
         const assetId = params[0]?.name || ''
@@ -91,20 +101,25 @@ function renderChart() {
       type: 'category',
       name: '候选策略',
       data: ids,
+      nameTextStyle: { color: chartTextColor },
       axisLabel: {
         rotate: 38,
-        color: '#9fb1ce',
+        color: chartLabelColor,
         formatter: (value) => (value.length > 14 ? `${value.slice(0, 12)}...` : value)
-      }
+      },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisTick: { lineStyle: { color: axisLineColor } }
     },
     yAxis: {
       type: 'value',
       name: '权重',
+      nameTextStyle: { color: chartTextColor },
       axisLabel: {
-        color: '#9fb1ce',
+        color: chartLabelColor,
         formatter: (value) => `${(value * 100).toFixed(0)}%`
       },
-      splitLine: { lineStyle: { color: 'rgba(140, 160, 190, 0.14)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series
   })

@@ -1,6 +1,7 @@
 <template>
   <section class="chart-panel selected-assets-card">
     <div class="chart-title">入选策略</div>
+    <p class="table-note">仅展示权重 ≥ 1% 的候选策略。</p>
     <el-empty v-if="!selectedAssets.length" description="当前没有权重 ≥ 1% 的入选策略" />
     <div v-else class="table-wrapper">
       <el-table class="selected-assets-table" :data="selectedAssets" size="small">

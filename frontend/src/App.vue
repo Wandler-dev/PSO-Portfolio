@@ -7,8 +7,8 @@
       </div>
       <div class="status-strip">
         <el-tag :type="backendStatusType" effect="dark">{{ backendStatusText }}</el-tag>
-        <span>数据源：{{ dataSummary?.data_source || '-' }}</span>
-        <span>候选策略：{{ dataSummary?.asset_count ?? '-' }}</span>
+        <span>数据集：{{ displayDataSource }}</span>
+        <span>候选策略数量：{{ dataSummary?.asset_count ?? '-' }}</span>
       </div>
     </header>
 
@@ -36,9 +36,9 @@
         <section class="data-band">
           <div>
             <span class="section-label">数据集</span>
-            <strong>{{ dataSummary?.data_source || '未连接' }}</strong>
+            <strong>数据集：{{ displayDataSource }}</strong>
           </div>
-          <p>{{ dataSummary?.source_notes || '等待后端数据摘要。' }}</p>
+          <p>{{ localizedDataNote }}</p>
         </section>
 
         <KpiCards :result="optimizationResult" />
@@ -50,7 +50,18 @@
             :points="optimizationResult?.risk_return_points || []"
             :best-point="optimizationResult?.best_point || null"
           />
+        </section>
+
+        <section class="selection-summary-grid">
           <SelectedAssetsTable :selected-assets="optimizationResult?.selected_assets || []" />
+          <section class="chart-panel selection-note-card">
+            <div class="chart-title">当前组合说明</div>
+            <ul>
+              <li>入选策略指权重 ≥ 1% 的候选策略。</li>
+              <li>最优权重向量经过非负化和归一化处理，权重总和为 100%。</li>
+              <li>Strategy_x 表示 UCI 数据集中的候选策略 ID。</li>
+            </ul>
+          </section>
         </section>
 
         <section class="comparison-section">
@@ -123,6 +134,24 @@ const backendStatusType = computed(() => {
   if (backendStatus.value === 'connected') return 'success'
   if (backendStatus.value === 'failed') return 'danger'
   return 'info'
+})
+
+const displayDataSource = computed(() => {
+  const source = dataSummary.value?.data_source
+  if (source === 'uci') return 'UCI'
+  if (source === 'simulated_fallback') return '模拟数据 fallback'
+  return source || '-'
+})
+
+const localizedDataNote = computed(() => {
+  if (!dataSummary.value) return '等待后端数据摘要。'
+  if (dataSummary.value.data_source === 'uci') {
+    return 'UCI Stock Portfolio Performance 数据集不是原始 date / symbol / close 股票价格序列。本系统将每个 ID 解释为一个候选选股权重策略，PSO 在这些候选策略之间优化资金分配权重。期望收益率来自 all period 表中的 original Annual Return，协方差矩阵由 1st / 2nd / 3rd / 4th period 的 Annual Return observations 构造。Annual Return 已是绩效指标，因此不再进行 252 个交易日年化。'
+  }
+  if (dataSummary.value.data_source === 'simulated_fallback') {
+    return '当前使用模拟数据 fallback。该数据仅用于本地运行兜底，不代表真实 UCI 实验结果。'
+  }
+  return '已连接后端数据源，等待数据说明。'
 })
 
 function applyPreset(preset) {
