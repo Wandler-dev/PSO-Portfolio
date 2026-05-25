@@ -16,7 +16,15 @@ data/cache/
 data/cache/*.json
 data/*.csv
 data/*.xlsx
-data/raw/*.xlsx
+
+# Local-only planning / agent notes
+docs/ACCEPTANCE_CRITERIA.md
+docs/CODEX_INSTRUCTIONS.md
+docs/DEMO_DESIGN.md
+docs/PROPOSAL_REVISED.md
+docs/STAGE_1_TASKS.md
+docs/defense_talking_points.md
+docs/final_report_outline.md
 
 # Frontend
 frontend/node_modules/
