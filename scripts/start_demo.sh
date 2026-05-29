@@ -9,6 +9,8 @@ if [[ ! -f "backend/app/main.py" || ! -f "frontend/package.json" ]]; then
 fi
 
 RUN_DIR="$(pwd)/.run"
+BACKEND_PORT="${BACKEND_PORT:-${PSO_API_PORT:-8000}}"
+FRONTEND_PORT="${FRONTEND_PORT:-5173}"
 mkdir -p "$RUN_DIR"
 STARTED_PID_FILES=()
 
@@ -73,12 +75,12 @@ PY
 }
 
 print_access_urls() {
-  echo "Frontend URL: http://127.0.0.1:5173"
+  echo "Frontend URL: http://127.0.0.1:${FRONTEND_PORT}"
 
   local wsl_ip
   wsl_ip="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"
   if [[ -n "${wsl_ip}" ]]; then
-    echo "WSL IP frontend URL: http://${wsl_ip}:5173"
+    echo "WSL IP frontend URL: http://${wsl_ip}:${FRONTEND_PORT}"
   fi
 }
 
@@ -113,23 +115,23 @@ fi
 backend_already_running=0
 frontend_already_running=0
 
-if port_in_use 8000; then
-  if url_reachable "http://127.0.0.1:8000/api/health"; then
+if port_in_use "$BACKEND_PORT"; then
+  if url_reachable "http://127.0.0.1:${BACKEND_PORT}/api/health"; then
     backend_already_running=1
-    echo "Backend already running on port 8000."
+    echo "Backend already running on port ${BACKEND_PORT}."
   else
-    echo "Port 8000 is already in use, but it does not look like this project's FastAPI service."
+    echo "Port ${BACKEND_PORT} is already in use, but it does not look like this project's FastAPI service."
     echo "Run scripts/stop_demo.sh if it is a previous Demo process, or handle the process manually."
     exit 1
   fi
 fi
 
-if port_in_use 5173; then
-  if url_reachable "http://127.0.0.1:5173"; then
+if port_in_use "$FRONTEND_PORT"; then
+  if url_reachable "http://127.0.0.1:${FRONTEND_PORT}"; then
     frontend_already_running=1
-    echo "Frontend already running on port 5173."
+    echo "Frontend already running on port ${FRONTEND_PORT}."
   else
-    echo "Port 5173 is already in use, but it does not look like this project's Vite frontend."
+    echo "Port ${FRONTEND_PORT} is already in use, but it does not look like this project's Vite frontend."
     echo "Run scripts/stop_demo.sh if it is a previous Demo process, or handle the process manually."
     exit 1
   fi
@@ -150,9 +152,9 @@ fi
 if [[ "$backend_already_running" -eq 0 ]]; then
   echo "Starting FastAPI backend..."
   if command -v setsid > /dev/null 2>&1; then
-    nohup setsid python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 > "$RUN_DIR/backend.log" 2>&1 &
+    nohup setsid python -m uvicorn backend.app.main:app --host 0.0.0.0 --port "$BACKEND_PORT" > "$RUN_DIR/backend.log" 2>&1 &
   else
-    nohup python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 > "$RUN_DIR/backend.log" 2>&1 &
+    nohup python -m uvicorn backend.app.main:app --host 0.0.0.0 --port "$BACKEND_PORT" > "$RUN_DIR/backend.log" 2>&1 &
   fi
   echo "$!" > "$RUN_DIR/backend.pid"
   STARTED_PID_FILES+=("$RUN_DIR/backend.pid")
@@ -163,9 +165,9 @@ if [[ "$frontend_already_running" -eq 0 ]]; then
   (
     cd frontend
     if command -v setsid > /dev/null 2>&1; then
-      nohup setsid npm run dev -- --host 0.0.0.0 --port 5173 > "$RUN_DIR/frontend.log" 2>&1 &
+      VITE_API_TARGET="http://127.0.0.1:${BACKEND_PORT}" nohup setsid npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" > "$RUN_DIR/frontend.log" 2>&1 &
     else
-      nohup npm run dev -- --host 0.0.0.0 --port 5173 > "$RUN_DIR/frontend.log" 2>&1 &
+      VITE_API_TARGET="http://127.0.0.1:${BACKEND_PORT}" nohup npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" > "$RUN_DIR/frontend.log" 2>&1 &
     fi
     echo "$!" > "$RUN_DIR/frontend.pid"
   )
@@ -188,8 +190,8 @@ if [[ "$frontend_already_running" -eq 0 ]]; then
   fi
 fi
 
-wait_for_url "http://127.0.0.1:8000/api/health" "Backend" || true
-wait_for_url "http://127.0.0.1:5173" "Frontend" || true
+wait_for_url "http://127.0.0.1:${BACKEND_PORT}/api/health" "Backend" || true
+wait_for_url "http://127.0.0.1:${FRONTEND_PORT}" "Frontend" || true
 
 echo "Demo started."
 print_access_urls

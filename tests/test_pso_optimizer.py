@@ -38,6 +38,7 @@ def test_run_pso_returns_required_fields_and_valid_best_weights():
 
     assert set(result) == {
         "best_weights",
+        "objective_score",
         "expected_return",
         "volatility",
         "sharpe_ratio",
@@ -47,6 +48,7 @@ def test_run_pso_returns_required_fields_and_valid_best_weights():
     assert min(result["best_weights"]) >= -1e-12
     assert sum(result["best_weights"]) == pytest_approx(1.0)
     assert len(result["convergence_curve"]) == 25
+    assert {"objective_score", "sharpe_ratio"} <= set(result["convergence_curve"][0])
 
 
 def test_run_pso_is_reproducible_with_fixed_random_seed():
@@ -79,6 +81,56 @@ def test_run_pso_is_reproducible_with_fixed_random_seed():
     assert first["sharpe_ratio"] == pytest_approx(second["sharpe_ratio"])
 
 
+def test_run_pso_respects_max_asset_weight_constraint():
+    expected_returns, covariance_matrix = sample_problem()
+
+    result = run_pso(
+        expected_returns,
+        covariance_matrix,
+        particles=30,
+        iterations=25,
+        max_asset_weight=0.4,
+        random_seed=42,
+    )
+
+    assert max(result["best_weights"]) <= 0.4000001
+    assert sum(result["best_weights"]) == pytest_approx(1.0)
+
+
+def test_run_pso_respects_top_k_assets_constraint():
+    expected_returns, covariance_matrix = sample_problem()
+
+    result = run_pso(
+        expected_returns,
+        covariance_matrix,
+        particles=30,
+        iterations=25,
+        top_k_assets=2,
+        max_asset_weight=0.7,
+        random_seed=42,
+    )
+
+    nonzero_count = sum(weight > 1e-12 for weight in result["best_weights"])
+    assert nonzero_count <= 2
+    assert sum(result["best_weights"]) == pytest_approx(1.0)
+
+
+def test_risk_adjusted_objective_reports_distinct_objective_score():
+    expected_returns, covariance_matrix = sample_problem()
+
+    result = run_pso(
+        expected_returns,
+        covariance_matrix,
+        particles=30,
+        iterations=25,
+        objective_mode="risk_adjusted_return",
+        risk_aversion=1.0,
+        random_seed=42,
+    )
+
+    assert result["objective_score"] != pytest_approx(result["sharpe_ratio"])
+
+
 def test_generate_random_portfolios_defaults_to_at_least_2000_points():
     expected_returns, covariance_matrix = sample_problem()
 
@@ -91,6 +143,21 @@ def test_generate_random_portfolios_defaults_to_at_least_2000_points():
 
     assert len(portfolios) >= 2000
     assert {"volatility", "expected_return", "sharpe_ratio"} <= set(portfolios[0])
+
+
+def test_generate_random_portfolios_supports_constraints():
+    expected_returns, covariance_matrix = sample_problem()
+
+    portfolios = generate_random_portfolios(
+        expected_returns,
+        covariance_matrix,
+        samples=2000,
+        max_asset_weight=0.6,
+        top_k_assets=2,
+        random_seed=10,
+    )
+
+    assert len(portfolios) == 2000
 
 
 def test_normalize_weights_rejects_nan_and_inf_values():

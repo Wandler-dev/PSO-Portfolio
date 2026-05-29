@@ -2,91 +2,67 @@
 
 ## 1. 实验目的
 
-本阶段实验用于验证 PSO 是否能在 UCI 候选策略权重空间中找到较高 Sharpe Ratio 的组合，并观察不同 PSO 参数对收敛效果和运行时间的影响。实验同时使用 Monte Carlo 随机组合 baseline 作为对照，用于判断 PSO 结果在随机组合分布中的相对位置。
+本轮实验用于验证三个增强点是否有效：不同风险偏好目标函数、单项最大权重约束、Top-K 入选数量约束。实验仍使用 Monte Carlo 随机组合作为 baseline，用于观察 PSO 结果在风险-收益空间中的相对位置。
 
-需要强调的是，Monte Carlo baseline 是随机组合基准，不是理论全局最优；PSO 也是启发式算法，本实验只能说明其在当前数据和参数设置下找到了较高 Sharpe Ratio 的近似最优组合。
+## 2. 数据与统一设置
 
-## 2. 数据说明
-
-实验使用 UCI Stock Portfolio Performance 数据集。该数据不是 `date/symbol/close` 股票价格表，而是 weighted scoring stock portfolios 的表现数据。本项目将每个 UCI ID 解释为一个候选 stock-selection weighting strategy，PSO 优化的是这些候选策略之间的资金分配权重。
-
-本次实验的数据加载结果如下：
-
-- `data_source`: `uci`
-- 候选策略数量：63
-- `expected_returns` 来自 `all period` sheet 的 `original_Annual Return` 字段。
-- `covariance_matrix` 由 `1st period`、`2nd period`、`3rd period`、`4th period` 的 Annual Return observations 构造。
-- UCI Annual Return 已是表现指标，不使用 252 日年化。
-- 协方差矩阵只基于 4 个 period observations 估计，存在低秩和估计不稳定的局限。
-
-## 3. 实验设置
-
-- PSO 目标函数：最大化 `Sharpe Ratio = (E(Rp) - Rf) / volatility`。
-- 组合波动率：`volatility = sqrt(w^T Sigma w)`。
-- 约束条件：`wi >= 0` 且 `sum(wi)=1`。
-- 1% 阈值只用于解释 `selected_assets`，不参与 PSO 优化搜索。
+- 数据源：UCI Stock Portfolio Performance。
+- `data_source = uci`。
+- 候选策略数量：63。
+- 每个 UCI ID 被解释为一个候选 stock-selection weighting strategy。
+- 权重约束基础形式：`wi >= 0`，`sum(wi) = 1`。
 - Monte Carlo baseline 样本数：3000。
 - `risk_free_rate = 0.0`。
-- 不使用 15% 单票仓位上限。
+- 1% 权重阈值只用于解释入选策略，不参与 PSO 搜索。
 
-## 4. Preset 对比结果
+## 3. 风险偏好预设实验
 
-| preset_name | particles | iterations | expected_return | volatility | sharpe_ratio | selected_assets_count | compute_time_seconds | monte_carlo_best_sharpe | pso_minus_monte_carlo_best_sharpe |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| conservative | 50 | 150 | 0.1466 | 0.0546 | 2.6861 | 5 | 0.274 | 1.8743 | 0.8118 |
-| balanced | 100 | 200 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.546 | 1.8743 | 0.9869 |
-| aggressive | 200 | 400 | 0.1342 | 0.0469 | 2.8611 | 2 | 1.941 | 1.8743 | 0.9869 |
+| preset | objective_mode | risk_aversion | max_weight | top_k | expected_return | volatility | sharpe_ratio | selected_count | max_actual_weight |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| conservative | risk_adjusted_return | 2.0 | 0.15 | 10 | 0.1642 | 0.0663 | 2.4772 | 7 | 0.1500 |
+| balanced | sharpe | 0.0 | 0.25 | 10 | 0.1517 | 0.0582 | 2.6076 | 5 | 0.2500 |
+| aggressive | risk_adjusted_return | 0.2 | 0.50 | 10 | 0.1930 | 0.1035 | 1.8653 | 2 | 0.5000 |
 
-`balanced` 和 `aggressive` 在本次实验中达到相同 Sharpe Ratio，均高于 `conservative`。`aggressive` 的计算时间明显增加，但没有带来额外提升，说明在当前数据和参数下，继续增加粒子数和迭代数出现边际收益递减。
+结论：三种预设现在不再只是 PSO 参数强弱，而是代表不同投资偏好。激进型获得最高期望收益率，但波动率明显升高，因此 Sharpe Ratio 不如均衡型；均衡型在收益和风险之间取得更好的收益/风险比；保守型使用更严格仓位限制，组合更分散。
 
-## 5. 粒子数量影响
+## 4. 单项最大权重约束实验
 
-固定 `iterations=200`、`inertia_weight=0.7`、`c1=1.5`、`c2=1.5`、`random_seed=42`，改变粒子数量：
+| experiment | max_weight | expected_return | volatility | sharpe_ratio | selected_count | actual_max_weight | HHI |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| no cap | - | 0.1583 | 0.0594 | 2.6664 | 2 | 0.6516 | 0.5460 |
+| 50% cap | 0.50 | 0.1503 | 0.0558 | 2.6958 | 3 | 0.5000 | 0.3869 |
+| 25% cap | 0.25 | 0.1517 | 0.0582 | 2.6076 | 5 | 0.2500 | 0.2190 |
+| 15% cap | 0.15 | 0.1490 | 0.0572 | 2.6030 | 8 | 0.1500 | 0.1427 |
 
-| particles | iterations | expected_return | volatility | sharpe_ratio | selected_assets_count | compute_time_seconds | monte_carlo_best_sharpe | pso_minus_monte_carlo_best_sharpe |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 50 | 200 | 0.1452 | 0.0536 | 2.7083 | 2 | 0.327 | 1.8743 | 0.8340 |
-| 100 | 200 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.527 | 1.8743 | 0.9869 |
-| 200 | 200 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.934 | 1.8743 | 0.9869 |
+结论：单项权重上限显著降低组合集中度。无上限时最大权重达到 65.16%，HHI 为 0.5460；加入 15% 上限后最大权重被严格控制为 15%，入选策略数提升到 8，HHI 降至 0.1427。50% 上限在本次结果中 Sharpe Ratio 最高，说明适度限制集中持仓可能降低波动率并改善收益/风险比。
 
-粒子数从 50 增加到 100 时，Sharpe Ratio 从 2.7083 提升到 2.8611；继续增加到 200 后没有进一步提升，但运行时间继续增加。因此，粒子数增加有助于增强搜索覆盖，但在本实验中 100 个粒子后边际收益明显递减。
+## 5. Top-K 入选约束实验
 
-## 6. 迭代次数影响
+| experiment | top_k | expected_return | volatility | sharpe_ratio | selected_count | actual_max_weight | HHI |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| top_k_5 | 5 | 0.1503 | 0.0577 | 2.6062 | 5 | 0.2500 | 0.2287 |
+| top_k_10 | 10 | 0.1517 | 0.0582 | 2.6076 | 5 | 0.2500 | 0.2190 |
+| top_k_15 | 15 | 0.1517 | 0.0582 | 2.6076 | 5 | 0.2500 | 0.2190 |
+| top_k_20 | 20 | 0.1517 | 0.0582 | 2.6076 | 5 | 0.2500 | 0.2190 |
 
-固定 `particles=100`、`inertia_weight=0.7`、`c1=1.5`、`c2=1.5`、`random_seed=42`，改变迭代次数：
+结论：Top-K 约束把连续权重优化和课程要求中的“是否选择股票/资产”连接起来。K=5 时组合最紧凑，仍能达到 2.6062 的 Sharpe Ratio；K 增大到 10 后达到 2.6076，继续增大 K 没有显著提升，说明有效组合主要由少数候选策略构成。
 
-| iterations | particles | expected_return | volatility | sharpe_ratio | selected_assets_count | compute_time_seconds | monte_carlo_best_sharpe | pso_minus_monte_carlo_best_sharpe |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 100 | 100 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.317 | 1.8743 | 0.9869 |
-| 200 | 100 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.511 | 1.8743 | 0.9869 |
-| 400 | 100 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.958 | 1.8743 | 0.9869 |
+## 6. 随机种子稳定性
 
-在本数据和随机种子下，100 次迭代已经达到后续 200、400 次迭代相同的最终 Sharpe Ratio。收敛曲线后段趋于平台，说明继续增加迭代次数主要增加计算时间，并未改善最终结果。
+固定 `max_asset_weight=0.25`、`top_k_assets=10`、目标函数为最大化 Sharpe Ratio，改变随机种子：
 
-## 7. 随机种子稳定性
+- `sharpe_ratio_mean = 2.6873`
+- `sharpe_ratio_std = 0.0405`
 
-固定 `particles=100`、`iterations=200`、`inertia_weight=0.7`、`c1=1.5`、`c2=1.5`，改变随机种子：
+结论：不同随机种子下 Sharpe Ratio 有一定波动，但整体保持在较高水平。PSO 是启发式搜索算法，不保证数学全局最优，因此报告中应说明随机初始化会影响最终结果。
 
-| random_seed | expected_return | volatility | sharpe_ratio | selected_assets_count | compute_time_seconds | monte_carlo_best_sharpe | pso_minus_monte_carlo_best_sharpe |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.515 | 1.8803 | 0.9808 |
-| 7 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.514 | 1.8736 | 0.9875 |
-| 42 | 0.1342 | 0.0469 | 2.8611 | 2 | 0.516 | 1.8743 | 0.9869 |
-| 2024 | 0.1371 | 0.0484 | 2.8347 | 2 | 0.500 | 1.8812 | 0.9535 |
-| 3407 | 0.1452 | 0.0536 | 2.7083 | 2 | 0.518 | 1.8775 | 0.8308 |
+## 7. 总体结论
 
-随机种子统计：
+增强后的实验更能体现工作量和课程要求：
 
-- `sharpe_ratio_mean = 2.8253`
-- `sharpe_ratio_std = 0.0594`
-- `expected_return_mean = 0.1370`
-- `volatility_mean = 0.0485`
-- `selected_assets_count_mean = 2.0`
+- 风险偏好目标让保守、均衡、激进三种模式有真实含义。
+- 单项最大权重约束解决了原始结果中权重过度集中问题。
+- Top-K 约束体现了“是否选择资产”的离散解释。
+- PSO 在多数实验组中仍优于对应 Monte Carlo 随机组合的最佳 Sharpe Ratio。
 
-大多数随机种子得到接近的结果，其中 seed 3407 的 Sharpe Ratio 较低，说明 PSO 结果存在一定随机性。总体看，固定参数下结果较稳定，但仍应在报告中说明 PSO 是启发式搜索，受初始化和随机过程影响。
-
-## 8. 结论
-
-PSO 在当前 UCI 数据解释方式和参数设置下，可以找到较高 Sharpe Ratio 的近似最优组合。相比 Monte Carlo 随机组合 baseline，PSO 提供了更有方向的搜索过程；在所有实验组中，PSO 的 Sharpe Ratio 均高于对应随机组合 baseline 的最佳 Sharpe Ratio。
-
-但 PSO 是启发式算法，不保证数学意义上的全局最优。UCI 数据也不是原始股票价格表，本项目将每个 ID 解释为候选策略，因此实验结论应理解为“候选策略组合权重优化”的课程建模结果。同时，协方差矩阵基于有限 period observations 构造，存在低秩和估计不稳定的局限。
+需要注意的是，UCI 数据不是原始股票价格序列，本项目优化的是候选策略之间的资金分配权重；实验结论应定位为课程建模和算法演示结果，而不是实际投资建议。

@@ -111,6 +111,7 @@ def test_load_portfolio_dataset_output_can_run_pso():
 
     assert set(result) == {
         "best_weights",
+        "objective_score",
         "expected_return",
         "volatility",
         "sharpe_ratio",

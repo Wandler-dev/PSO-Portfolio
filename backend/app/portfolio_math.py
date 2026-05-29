@@ -10,8 +10,8 @@ import numpy as np
 NEAR_ZERO = 1e-12
 
 
-def normalize_weights(weights):
-    """Clip weights to non-negative values and normalize them to sum to one."""
+def normalize_weights(weights, max_weight=None, top_k=None):
+    """Clip weights to a valid long-only, fully-invested portfolio."""
     values = np.asarray(weights, dtype=float)
     if values.ndim != 1:
         raise ValueError("weights must be a one-dimensional vector")
@@ -19,12 +19,71 @@ def normalize_weights(weights):
         raise ValueError("weights must not be empty")
     if not np.all(np.isfinite(values)):
         raise ValueError("weights must contain only finite values")
+    if top_k is not None:
+        if top_k <= 0:
+            raise ValueError("top_k must be positive")
+        if top_k > values.size:
+            raise ValueError("top_k cannot exceed weights length")
+    if max_weight is not None:
+        if max_weight <= 0 or max_weight > 1:
+            raise ValueError("max_weight must be in the interval (0, 1]")
+        active_count = values.size if top_k is None else top_k
+        if max_weight * active_count < 1.0 - NEAR_ZERO:
+            raise ValueError("max_weight is too small for the active asset count")
 
-    clipped = np.clip(values, 0.0, None)
+    active_mask = np.ones(values.shape, dtype=bool)
+    if top_k is not None and top_k < values.size:
+        active_mask[:] = False
+        active_indices = np.argpartition(values, -top_k)[-top_k:]
+        active_mask[active_indices] = True
+
+    clipped = np.where(active_mask, np.clip(values, 0.0, None), 0.0)
     total = float(clipped.sum())
     if total <= NEAR_ZERO:
-        return np.full(values.shape, 1.0 / values.size, dtype=float)
-    return clipped / total
+        result = np.zeros(values.shape, dtype=float)
+        if top_k is None:
+            result[:] = 1.0 / values.size
+            return _apply_max_weight(result, max_weight, active_mask)
+        result[active_mask] = 1.0 / top_k
+        return _apply_max_weight(result, max_weight, active_mask)
+    normalized = clipped / total
+    return _apply_max_weight(normalized, max_weight, active_mask)
+
+
+def _apply_max_weight(weights, max_weight, active_mask):
+    if max_weight is None:
+        return weights
+
+    capped = np.where(active_mask, np.clip(weights, 0.0, None), 0.0)
+    fixed = np.zeros(capped.shape, dtype=bool)
+    remaining_weight = 1.0
+
+    for _ in range(capped.size + 1):
+        available = active_mask & ~fixed
+        if not np.any(available):
+            if abs(float(capped.sum()) - 1.0) <= 1e-8:
+                return capped
+            raise ValueError("max_weight is infeasible for the active asset set")
+
+        subtotal = float(capped[available].sum())
+        if subtotal <= NEAR_ZERO:
+            capped[available] = remaining_weight / int(np.sum(available))
+        else:
+            capped[available] = capped[available] / subtotal * remaining_weight
+
+        above_cap = available & (capped > max_weight)
+        if not np.any(above_cap):
+            capped[~active_mask] = 0.0
+            return capped / capped.sum()
+
+        capped[above_cap] = max_weight
+        fixed[above_cap] = True
+        remaining_weight = 1.0 - float(capped[fixed].sum())
+        if remaining_weight <= NEAR_ZERO:
+            capped[active_mask & ~fixed] = 0.0
+            return capped / capped.sum()
+
+    raise ValueError("failed to apply max_weight constraint")
 
 
 def portfolio_expected_return(weights, expected_returns):

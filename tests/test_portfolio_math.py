@@ -28,6 +28,24 @@ def test_normalize_weights_uses_uniform_weights_when_all_values_are_zero_after_c
     np.testing.assert_allclose(normalized, np.array([1 / 3, 1 / 3, 1 / 3]))
 
 
+def test_normalize_weights_applies_max_weight_constraint():
+    weights = np.array([10.0, 1.0, 1.0])
+
+    normalized = normalize_weights(weights, max_weight=0.5)
+
+    assert normalized.sum() == pytest_approx(1.0)
+    assert normalized.max() <= 0.5000001
+
+
+def test_normalize_weights_applies_top_k_constraint():
+    weights = np.array([0.5, 0.4, 0.3, 0.2])
+
+    normalized = normalize_weights(weights, top_k=2)
+
+    assert normalized.sum() == pytest_approx(1.0)
+    assert np.count_nonzero(normalized > 1e-12) == 2
+
+
 def test_portfolio_expected_return_uses_weighted_sum():
     weights = np.array([0.25, 0.75])
     expected_returns = np.array([0.08, 0.16])

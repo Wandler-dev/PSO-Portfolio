@@ -17,6 +17,11 @@ REQUIRED_OPTIMIZE_FIELDS = {
     "expected_return",
     "volatility",
     "sharpe_ratio",
+    "objective_score",
+    "objective_mode",
+    "risk_aversion",
+    "max_asset_weight",
+    "top_k_assets",
     "best_weights",
     "selected_assets",
     "convergence_curve",
@@ -31,17 +36,12 @@ REQUIRED_OPTIMIZE_FIELDS = {
 
 
 def small_dataset():
+    asset_count = 10
     return {
         "data_source": "uci",
-        "asset_names": ["Strategy_1", "Strategy_2", "Strategy_3"],
-        "expected_returns": np.array([0.10, 0.14, 0.08]),
-        "covariance_matrix": np.array(
-            [
-                [0.050, 0.010, 0.004],
-                [0.010, 0.070, 0.006],
-                [0.004, 0.006, 0.040],
-            ]
-        ),
+        "asset_names": [f"Strategy_{index}" for index in range(1, asset_count + 1)],
+        "expected_returns": np.linspace(0.08, 0.16, asset_count),
+        "covariance_matrix": np.eye(asset_count) * 0.05,
         "annualized": True,
         "trading_days_per_year": None,
         "source_notes": "test dataset",
@@ -83,6 +83,10 @@ def test_valid_optimize_request_can_be_created():
     assert request.c1 == 1.5
     assert request.c2 == 1.5
     assert request.risk_free_rate == 0.0
+    assert request.objective_mode == "sharpe"
+    assert request.risk_aversion == 0.0
+    assert request.max_asset_weight is None
+    assert request.top_k_assets is None
     assert request.random_seed == 42
     assert request.monte_carlo_samples == 3000
     assert request.preset_name is None
@@ -95,6 +99,11 @@ def test_valid_optimize_request_can_be_created():
         {"iterations": 49},
         {"monte_carlo_samples": 1999},
         {"preset_name": "invalid"},
+        {"objective_mode": "invalid"},
+        {"risk_aversion": -0.1},
+        {"max_asset_weight": 1.1},
+        {"top_k_assets": 1},
+        {"max_asset_weight": 0.25, "top_k_assets": 3},
     ],
 )
 def test_optimize_request_rejects_invalid_ranges(field_overrides):
@@ -106,7 +115,7 @@ def test_build_data_summary_returns_data_source_and_asset_count():
     summary = services.build_data_summary()
 
     assert summary["data_source"] == "uci"
-    assert summary["asset_count"] == 3
+    assert summary["asset_count"] == 10
     assert summary["asset_count"] == len(summary["asset_names"])
     assert summary["annualized"] is True
     assert "source_notes" in summary
@@ -136,6 +145,23 @@ def test_run_optimization_service_best_weights_match_asset_count(optimize_result
         rel_tol=0.0,
         abs_tol=1e-6,
     )
+
+
+def test_run_optimization_service_respects_weight_and_top_k_constraints():
+    request = OptimizeRequest(
+        particles=20,
+        iterations=50,
+        max_asset_weight=0.5,
+        top_k_assets=2,
+        monte_carlo_samples=2000,
+    )
+
+    result = services.run_optimization_service(request)
+
+    assert result["max_asset_weight"] == 0.5
+    assert result["top_k_assets"] == 2
+    assert max(result["best_weights"]) <= 0.5000001
+    assert sum(weight > 1e-12 for weight in result["best_weights"]) <= 2
 
 
 def test_run_optimization_service_generates_requested_random_points(optimize_result):

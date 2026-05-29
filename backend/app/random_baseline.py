@@ -18,6 +18,8 @@ def generate_random_portfolios(
     samples=3000,
     risk_free_rate=0.0,
     random_seed=None,
+    max_asset_weight=None,
+    top_k_assets=None,
 ):
     if samples < 2000:
         raise ValueError("samples must be at least 2000")
@@ -34,7 +36,15 @@ def generate_random_portfolios(
 
     rng = np.random.default_rng(random_seed)
     raw_weights = rng.random((samples, expected_returns_array.shape[0]))
-    weights = np.apply_along_axis(normalize_weights, 1, raw_weights)
+    weights = np.apply_along_axis(
+        lambda row: normalize_weights(
+            row,
+            max_weight=max_asset_weight,
+            top_k=top_k_assets,
+        ),
+        1,
+        raw_weights,
+    )
 
     portfolios = []
     for weight_vector in weights:

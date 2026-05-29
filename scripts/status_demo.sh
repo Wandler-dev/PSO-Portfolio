@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BACKEND_PORT="${BACKEND_PORT:-${PSO_API_PORT:-8000}}"
+FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+
 pid_status() {
   local name="$1"
   local pid_file="$2"
@@ -47,7 +50,7 @@ pid_status "backend" ".run/backend.pid" || true
 pid_status "frontend" ".run/frontend.pid" || true
 
 echo -n "backend health response summary: "
-check_url "backend" "http://127.0.0.1:8000/api/health" || true
+check_url "backend" "http://127.0.0.1:${BACKEND_PORT}/api/health" || true
 
-echo -n "frontend URL: http://127.0.0.1:5173 - "
-check_url "frontend" "http://127.0.0.1:5173" || true
+echo -n "frontend URL: http://127.0.0.1:${FRONTEND_PORT} - "
+check_url "frontend" "http://127.0.0.1:${FRONTEND_PORT}" || true

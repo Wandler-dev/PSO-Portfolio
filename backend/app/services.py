@@ -80,6 +80,10 @@ def run_optimization_service(request: OptimizeRequest):
         c2=effective_request.c2,
         risk_free_rate=effective_request.risk_free_rate,
         random_seed=effective_request.random_seed,
+        objective_mode=effective_request.objective_mode,
+        risk_aversion=effective_request.risk_aversion,
+        max_asset_weight=effective_request.max_asset_weight,
+        top_k_assets=effective_request.top_k_assets,
     )
     baseline_points = generate_random_portfolios(
         dataset["expected_returns"],
@@ -87,6 +91,8 @@ def run_optimization_service(request: OptimizeRequest):
         samples=effective_request.monte_carlo_samples,
         risk_free_rate=effective_request.risk_free_rate,
         random_seed=effective_request.random_seed,
+        max_asset_weight=effective_request.max_asset_weight,
+        top_k_assets=effective_request.top_k_assets,
     )
     risk_return_points = [
         {
@@ -110,6 +116,11 @@ def run_optimization_service(request: OptimizeRequest):
         "expected_return": pso_result["expected_return"],
         "volatility": pso_result["volatility"],
         "sharpe_ratio": pso_result["sharpe_ratio"],
+        "objective_score": pso_result["objective_score"],
+        "objective_mode": effective_request.objective_mode,
+        "risk_aversion": effective_request.risk_aversion,
+        "max_asset_weight": effective_request.max_asset_weight,
+        "top_k_assets": effective_request.top_k_assets,
         "best_weights": pso_result["best_weights"],
         "selected_assets": build_selected_assets(
             dataset["asset_names"],

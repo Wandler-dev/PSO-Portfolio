@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -10,7 +11,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-BASE_URL = "http://127.0.0.1:8000"
+API_PORT = int(os.environ.get("PSO_API_PORT") or os.environ.get("BACKEND_PORT", "8000"))
+BASE_URL = f"http://127.0.0.1:{API_PORT}"
 STARTUP_TIMEOUT_SECONDS = 20
 REQUEST_TIMEOUT_SECONDS = 180
 
@@ -66,7 +68,7 @@ def main():
         "--host",
         "127.0.0.1",
         "--port",
-        "8000",
+        str(API_PORT),
     ]
     process = subprocess.Popen(
         command,

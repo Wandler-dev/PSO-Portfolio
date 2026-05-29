@@ -29,6 +29,8 @@ const tooltipStyle = {
 function renderChart() {
   if (!chartRef.value) return
   if (!chart) chart = echarts.init(chartRef.value)
+  const useObjectiveScore = props.curve.some((point) => Number.isFinite(point.objective_score))
+  const metricLabel = useObjectiveScore ? '目标函数值' : '夏普比率'
   chart.setOption({
     grid: { left: 48, right: 20, top: 36, bottom: 36 },
     tooltip: {
@@ -36,7 +38,7 @@ function renderChart() {
       ...tooltipStyle,
       formatter: (params) => {
         const point = params[0]
-        return `第 ${point.axisValue} 次迭代<br/>夏普比率：${Number(point.value).toFixed(4)}`
+        return `第 ${point.axisValue} 次迭代<br/>${metricLabel}：${Number(point.value).toFixed(4)}`
       }
     },
     xAxis: {
@@ -50,7 +52,7 @@ function renderChart() {
     },
     yAxis: {
       type: 'value',
-      name: '夏普比率（Sharpe Ratio）',
+      name: metricLabel,
       scale: true,
       nameTextStyle: { color: chartTextColor },
       axisLabel: { color: chartLabelColor },
@@ -62,7 +64,7 @@ function renderChart() {
         type: 'line',
         smooth: true,
         symbol: 'none',
-        data: props.curve.map((point) => point.sharpe_ratio),
+        data: props.curve.map((point) => point.objective_score ?? point.sharpe_ratio),
         lineStyle: { color: '#28d6a3', width: 3 },
         areaStyle: { color: 'rgba(40, 214, 163, 0.12)' }
       }

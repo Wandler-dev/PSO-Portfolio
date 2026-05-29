@@ -120,6 +120,10 @@ const params = reactive({
   c1: 1.5,
   c2: 1.5,
   risk_free_rate: 0.0,
+  objective_mode: 'sharpe',
+  risk_aversion: 0.0,
+  max_asset_weight: 0.25,
+  top_k_assets: 10,
   random_seed: 42,
   monte_carlo_samples: 3000
 })
@@ -163,6 +167,10 @@ function applyPreset(preset) {
     c1: preset.c1,
     c2: preset.c2,
     risk_free_rate: preset.risk_free_rate,
+    objective_mode: preset.objective_mode,
+    risk_aversion: preset.risk_aversion,
+    max_asset_weight: preset.max_asset_weight,
+    top_k_assets: preset.top_k_assets,
     random_seed: preset.random_seed,
     monte_carlo_samples: preset.monte_carlo_samples
   })

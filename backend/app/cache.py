@@ -24,6 +24,10 @@ def build_cache_key(dataset_summary_or_dataset, request):
         "c1": request.c1,
         "c2": request.c2,
         "risk_free_rate": request.risk_free_rate,
+        "objective_mode": request.objective_mode,
+        "risk_aversion": request.risk_aversion,
+        "max_asset_weight": request.max_asset_weight,
+        "top_k_assets": request.top_k_assets,
         "random_seed": request.random_seed,
         "monte_carlo_samples": request.monte_carlo_samples,
     }
