@@ -2,6 +2,8 @@
 
 基于粒子群优化算法（Particle Swarm Optimization, PSO）的投资组合风险-收益均衡决策系统。项目包含手写 PSO 优化器、UCI 数据集解析、Monte Carlo 随机组合基准、FastAPI 后端、Vue 3 + ECharts Web 可视化界面，以及可复现实验脚本。
 
+GitHub 仓库：<https://github.com/Wandler-dev/PSO-Portfolio>
+
 本项目是课程实验与可视化系统，不是实盘交易系统，不包含券商接口、自动下单或投资建议功能。
 
 ## 功能特性
