@@ -1,6 +1,6 @@
 # 实验结果数据
 
-本目录由 `python scripts/run_experiments.py` 生成，用于课程报告和答辩分析。
+本目录由 `python scripts/run_experiments.py` 生成，用于技术报告和实验分析。
 
 ## 文件说明
 

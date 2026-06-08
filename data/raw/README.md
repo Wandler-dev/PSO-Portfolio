@@ -286,33 +286,22 @@ UCI 官方信息包括：
 
 ## 12. Git 管理建议
 
-`data/raw/` 下的原始 Excel 文件通常不建议提交到 Git。
+为保证课程源码包和 GitHub 仓库可直接复现，本项目选择提交当前 UCI Excel 文件：
 
-建议 `.gitignore` 中包含：
-
-- `data/raw/`
-- `data/cache/`
-
-代码、画像脚本和数据说明文档可以提交：
-
-- `scripts/profile_uci_dataset.py`
-- `docs/uci_dataset_profile.md`
+- `data/raw/stock portfolio performance data set.xlsx`
 - `data/raw/README.md`
 
-原始数据文件可以在最终课程压缩包中单独包含，或由说明文档引导下载。
+以下内容仍不提交：
+
+- `data/cache/`
+- 运行时生成的临时文件
+- 前端构建产物和依赖目录
 
 ## 13. 当前项目推荐读取顺序
 
-后续开发者在编写数据加载器前，应按顺序阅读：
+后续开发者理解数据口径时，建议阅读：
 
 1. `data/raw/README.md`
-2. `docs/uci_dataset_profile.md`
-3. `docs/DATA_SPEC.md`
-4. `docs/API_CONTRACT.md`
-5. `docs/STAGE_1_TASKS.md`
-
-然后再实现：
-
-- `backend/app/data_loader.py`
-- `backend/run_data_demo.py`
-- `tests/test_data_loader.py`
+2. `docs/TECHNICAL_REPORT.md`
+3. `backend/app/data_loader.py`
+4. `scripts/profile_uci_dataset.py`

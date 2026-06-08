@@ -16,7 +16,7 @@ GitHub 仓库：<https://github.com/Wandler-dev/PSO-Portfolio>
 - FastAPI 提供健康检查、数据摘要、预设参数和优化接口。
 - Vue 3 + Element Plus + ECharts 提供 Web 可视化界面。
 - 支持 conservative、balanced、aggressive 三组预设参数对比。
-- 提供实验脚本与已生成实验结果，便于复现报告中的分析。
+- 提供实验脚本与已生成实验结果，便于复现技术报告中的分析。
 
 ## 项目结构
 
@@ -39,7 +39,7 @@ scripts/
 data/
   raw/                    # UCI 原始数据与说明
   experiments/            # 可复现实验结果
-docs/                     # 公开项目文档
+docs/                     # 技术报告
 tests/                    # pytest 测试
 ```
 
@@ -60,7 +60,7 @@ data/raw/stock portfolio performance data set.xlsx
 - Annual Return 已是绩效指标，因此不进行 252 个交易日年化。
 - 如果原始数据缺失或解析失败，系统会使用 `simulated_fallback`，并在 API 响应中明确标注。
 
-更多说明见 [data/raw/README.md](data/raw/README.md) 和 [docs/DATA_SPEC.md](docs/DATA_SPEC.md)。
+更多说明见 [data/raw/README.md](data/raw/README.md) 和 [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)。
 
 ## 环境准备
 
@@ -143,7 +143,7 @@ npm run dev -- --host 0.0.0.0 --port 5173
 - `GET /api/presets`：返回 conservative、balanced、aggressive 三组预设参数。
 - `POST /api/optimize`：运行 PSO 优化并返回 KPI、最优权重、收敛曲线、Monte Carlo 随机组合点和入选策略表。
 
-字段命名遵守 [docs/API_CONTRACT.md](docs/API_CONTRACT.md)，对外统一使用 `expected_return`、`volatility`、`sharpe_ratio`、`best_weights`、`selected_assets` 等字段。
+对外字段统一使用 `expected_return`、`volatility`、`sharpe_ratio`、`best_weights`、`selected_assets` 等命名，接口和建模细节见 [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)。
 
 ## 运行测试
 
@@ -191,7 +191,7 @@ data/experiments/experiment_summary.csv
 data/experiments/convergence_curves.json
 ```
 
-已生成的实验结果随仓库一起提供，可直接用于核对报告中的实验分析。实验说明见 [data/experiments/README.md](data/experiments/README.md) 和 [docs/experiment_results.md](docs/experiment_results.md)。
+已生成的实验结果随仓库一起提供，可直接用于核对技术报告中的实验分析。实验说明见 [data/experiments/README.md](data/experiments/README.md) 和 [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)。
 
 ## Web 界面
 
@@ -206,20 +206,13 @@ Web 界面支持：
 - 入选策略表。
 - 三组预设参数的指标对比和组合权重对比。
 
-## 文档
+## 技术报告
 
-公开文档：
+项目文档已合并整理为一份主技术报告，避免 API 契约、数据说明和实验分析多处重复：
 
-- [docs/final_report.md](docs/final_report.md)：课程项目报告正文。
-- [docs/experiment_results.md](docs/experiment_results.md)：实验结果与分析。
-- [docs/reproduction_guide.md](docs/reproduction_guide.md)：复现与运行说明。
-- [docs/submission_checklist.md](docs/submission_checklist.md)：提交检查清单。
-- [docs/API_CONTRACT.md](docs/API_CONTRACT.md)：API 数据契约。
-- [docs/DATA_SPEC.md](docs/DATA_SPEC.md)：数据规范。
-- [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)：项目计划。
-- [docs/uci_dataset_profile.md](docs/uci_dataset_profile.md)：UCI Excel 数据画像。
+- [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)：项目背景、数据建模、PSO 算法、系统实现、实验结果、复现方式和局限性。
 
-内部开发过程文档、Codex 指令和答辩草稿不作为公开 GitHub 材料追踪。
+内部开发过程文档、Codex 指令和阶段任务不作为公开 GitHub 材料追踪。
 
 ## 限制与说明
 
@@ -237,7 +230,7 @@ Web 界面支持：
 - 源码、测试、脚本、环境文件和 Makefile。
 - UCI 原始 Excel 数据文件。
 - 可复现实验结果。
-- 面向协作者的公开文档。
+- 技术报告。
 
 仓库不追踪：
 
